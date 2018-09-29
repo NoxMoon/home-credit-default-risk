@@ -99,13 +99,15 @@ On the other hand, to add diversity at the feature level, I created three groups
 * use mean v.s. median v.s. mean of recent X years ...
 * ways of weight on time: exponential decay or reciprocal of time.
 * use mean encoding or lightgbm's build in categorical features
+
 ...
+
 The three groups of features can be trained with LightGBM in gbdt, goss, dart modes as well as xgboost. Top 200 features (by lightGBM feature importance) are selected and trained along with different groups of ~500 GP features.
 
-Eventually I had **27** of my own single models and 5 different runs of [neptune.ml](https://neptune.ml)'s [open solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/57175) model.
+Eventually I had **27** of my own single models and **5** different runs of [neptune.ml](https://neptune.ml)'s [open solution](https://www.kaggle.com/c/home-credit-default-risk/discussion/57175) model.
 
 #### Hyperparameter tunning
-In about half way through the competition, I tried to optimized my model hyperparameter using this [Bayesian optimization package](https://github.com/fmfn/BayesianOptimization). The optimization I've done is very preliminary: I searched for only 50 rounds and I did not retune the parameters after I added more features later. However, the bayesian optimization seems to show that shallow tree structure (depth=4/5) and feature fraction ~= 0.3 are two key parameters in this case.
+In about half way through the competition, I tried to optimized my model hyperparameter using this [Bayesian optimization package](https://github.com/fmfn/BayesianOptimization). The optimization I've done is very preliminary: I searched for only 50 rounds and did not retune the parameters after I added more features later. However, the bayesian optimization seems to show that shallow tree structure (depth=4/5) and feature fraction ~= 0.3 are two key parameters in this case.
 
 #### Ensembling
 I use weighted average to blend all my single models. The weights are tuned by **hand**: first determine the relative weights between open solution models and my own models, then fine tune the weights between the three feature groups and between lgb/xgb models. Ensembling gets **~0.002** boost in my final solution.
