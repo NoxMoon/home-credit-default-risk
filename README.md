@@ -27,7 +27,7 @@ Rank 17th/7198 (#1st of solo Kagger)
 #### Features from business intuition
 I don't have any professional background in business, but it is still possible to generate new features from the given raw features based on our understanding of finacial ability. Some useful features are:
 * loan payment length = credit amount / annuity
-* difference between actural and expected monthly payment
+* difference between actual and expected monthly payment
 * when is the last time a customer has payment past due
 * ratio between credit usage and credit limit
 * difference between actual and planned account close data
@@ -35,7 +35,7 @@ I don't have any professional background in business, but it is still possible t
 ......
 
 #### Statistics computed by grouping by accounts and months
-The supplementary tables (previous application, bureau records, installment etc) cannot be directly merged to the main table, because clients have vary number of previous loans and different length of credit history. Thus a lot of statistical features can be computed by first grouping by current application ID and averaging/summing over both different account and records of different months. Some statistics I computed includes:
+The supplementary tables (previous application, bureau records, installment etc) cannot be directly merged to the main table, because clients have various number of previous loans and different length of credit history. Thus a lot of statistical features can be computed by first grouping by current application ID and averaging/summing over both different account and records of different months. Some statistics I computed includes:
 * mean, sum, max, median, variance ...
 * the above statistic functions calculated on subset of accounts, such as all active accounts, approved/refused applications, the most recent application...
 * time scaled sum/mean (with more recent records weighted more), or regular statistics computed within a certain time window (such as within 3 years).
@@ -66,10 +66,10 @@ The aggregated predictions are pretty good features, and we can merge it to our 
 And we can do the same thing on each bureau record as well. These generated features gives ~0.003 boost of local CV, and are the main break through for winning a gold.
 
 #### Features from training on each monthly records
-Following the idea above, we can also groupby different account first and train a model on each monthly records. However, one has to be careful because monthly records of a same loan are likely to share same values for some features -- such as the same amount of monthly payment. This may introduce a leak to our model as the model may start to find out records with a certain monthly payment all have a certain target. To avoid the leak, we will place records of same customer in the same fold while doing cross validation, so that early-stopping can be triggered when the model starts to exploit information that cannot be generalized to test set. If the special kfold is not applied, the generated features will give unrealistic boost in CV.
+Following the idea above, we can also group by different account first and train a model on each monthly records. However, one has to be careful because monthly records of a same loan are likely to share same values for some features -- such as the same amount of monthly payment. This may introduce a leak to our model as the model may start to find out records with a certain monthly payment all have a certain target. To avoid the leak, we will place records of same customer in the same fold while doing cross validation, so that early-stopping can be triggered when the model starts to exploit information that cannot be generalized to test set. If the special kfold is not applied, the generated features will give unrealistic boost in CV.
 
 #### Features from time series
-The installment payment, pos-cash, credit card and bureau balance tables contain time series information. In complementary to the statistics we have already computed, I trained GRU networks on each of these four tables and extract the model prediction as features for final model training. The GRU network achieved 0.55-0.61 auc score during training.
+The installment payment, pos-cash, credit card and bureau balance tables contain time series information. In addition to the statistics we have already computed, I trained GRU networks on each of these four tables and extract the model prediction as features for final model training. The GRU network achieved 0.55-0.61 auc score during training.
 
 #### Document and house features
 In the main table there are ~20 features with value 0 or 1 descibing whether a certain document was provided in an application, as well as house features (scaled between 0 and 1) describing housing situation in applicant's residential area. I have simple logistic regression model trained only on these features and use the model prediction as features in final training.
@@ -112,7 +112,7 @@ In about half way through the competition, I tried to optimized my model hyperpa
 #### Ensembling
 I use weighted average to blend all my single models. The weights are tuned by **hand**: first determine the relative weights between open solution models and my own models, then fine tune the weights between the three feature groups and between lgb/xgb models. Ensembling gets **~0.002** boost in my final solution.
 
-Because of the potential overfitting of GP features, it would be problematic to soly rely on local CV when determining the weight in ensembling. Eventually I had one submission without using models with GP features, and another submission that gives models with GP features a weight of 8%. The second submission has higher private LB score, this indicates although there may be overfitting present in models using GP features, the diversity they brought are still beneficial.
+Because of the potential overfitting of GP features, it would be problematic to soly rely on local CV when determining the weight in ensembling. Eventually I had one submission without using models with GP features, and another submission that gives models with GP features a weight of 8%. The second submission has higher private LB score, indicating that although there may be overfitting present in models using GP features, the diversity they brought are still beneficial.
 
 ## What's not (fully) working?
 Attempting to do some "pseudo data augmentations" using previous applications. Because the previous applications share some features with current application, we can build a model trained on previous applications and use its prediction of current applications as features. As the dataset provides 8 years of previous application results, I selected the most recent 3 years of previous applications, and each previous application can find 5 more years records prior to itself as it's features. The targets are set to be things like "whether a previous application has days past due" or "average underpayment of each previous application". The generated features have a high feature importance in the final training but did not give much improvement on the auc score, probably because they did not add new information to our model.
